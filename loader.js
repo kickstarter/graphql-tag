@@ -54,7 +54,9 @@ module.exports = function(source) {
     doc.loc.source = ${JSON.stringify(doc.loc.source)};
   `;
 
-  let outputCode = "";
+  let outputCode = `
+    module.exports = doc;
+  `;
 
   // Allow multiple query/mutation definitions in a file. This parses out dependencies
   // at compile time, and then uses those at load time to create minimal query documents
@@ -67,16 +69,10 @@ module.exports = function(source) {
     return accum;
   }, 0);
 
-  if (operationCount < 1) {
+  if (operationCount >= 1) {
     outputCode += `
-      module.exports = doc;
-    `;
-  } else {
-    outputCode += `
-    module.exports = doc;
-
-    const { extractReferences, oneQuery } = require('${runtimePath}');
-    const definitionRefs = extractReferences(doc);
+      const { extractReferences, oneQuery } = require('${runtimePath}');
+      const definitionRefs = extractReferences(doc);
     `;
 
     for (const op of doc.definitions) {
