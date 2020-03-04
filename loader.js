@@ -1,5 +1,6 @@
 "use strict";
 
+const jsesc = require("jsesc");
 const os = require("os");
 const gql = require("./src");
 
@@ -45,7 +46,10 @@ module.exports = function(source) {
     ${source}
   `;
   let headerCode = `
-    var doc = ${JSON.stringify(doc)};
+    var doc = JSON.parse(${jsesc(JSON.stringify(doc), {
+      json: true,
+      isScriptContext: true
+    })});
     doc.loc.source = ${JSON.stringify(doc.loc.source)};
   `;
 
