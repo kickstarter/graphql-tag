@@ -1,7 +1,7 @@
 "use strict";
 
-const os = require('os');
-const gql = require('./src');
+const os = require("os");
+const gql = require("./src");
 
 // Takes `source` (the source GraphQL query string)
 // and `doc` (the parsed GraphQL document) and tacks on
@@ -26,14 +26,14 @@ function expandImports(source, doc) {
     }
   `;
 
-  lines.some((line) => {
-    if (line[0] === '#' && line.slice(1).split(' ')[0] === 'import') {
-      const importFile = line.slice(1).split(' ')[1];
+  lines.some(line => {
+    if (line[0] === "#" && line.slice(1).split(" ")[0] === "import") {
+      const importFile = line.slice(1).split(" ")[1];
       const parseDocument = `require(${importFile})`;
       const appendDef = `doc.definitions = doc.definitions.concat(unique(${parseDocument}.definitions));`;
       outputCode += appendDef + os.EOL;
     }
-    return (line.length !== 0 && line[0] !== '#');
+    return line.length !== 0 && line[0] !== "#";
   });
 
   return outputCode;
@@ -41,7 +41,9 @@ function expandImports(source, doc) {
 
 module.exports = function(source) {
   this.cacheable();
-  const doc = gql`${source}`;
+  const doc = gql`
+    ${source}
+  `;
   let headerCode = `
     var doc = ${JSON.stringify(doc)};
     doc.loc.source = ${JSON.stringify(doc.loc.source)};
@@ -63,7 +65,7 @@ module.exports = function(source) {
   if (operationCount < 1) {
     outputCode += `
       module.exports = doc;
-    `
+    `;
   } else {
     outputCode += `
     // Collect any fragment/type references from a node, adding them to the refs Set
@@ -163,7 +165,7 @@ module.exports = function(source) {
     }
 
     module.exports = doc;
-    `
+    `;
 
     for (const op of doc.definitions) {
       if (op.kind === "OperationDefinition") {
@@ -178,13 +180,14 @@ module.exports = function(source) {
         const opName = op.name.value;
         outputCode += `
         module.exports["${opName}"] = oneQuery(doc, "${opName}");
-        `
+        `;
       }
     }
   }
 
   const importOutputCode = expandImports(source, doc);
-  const allCode = headerCode + os.EOL + importOutputCode + os.EOL + outputCode + os.EOL;
+  const allCode =
+    headerCode + os.EOL + importOutputCode + os.EOL + outputCode + os.EOL;
 
   return allCode;
 };
